@@ -11,11 +11,13 @@ pub async  fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
-            dialog::commands::load_existing_data,
+            dialog::commands::load_dialogs,
+            dialog::commands::load_speakers,
             dialog::commands::pick_directory,
             dialog::commands::create_dialog,
+            dialog::commands::select_dialog,
             dialog::commands::create_speaker,
-            dialog::commands::try_load_step,
+            dialog::commands::update_labels,
             dialog::commands::try_load_variant,
             dialog::commands::save_variant,
             dialog::commands::generate_lua_code

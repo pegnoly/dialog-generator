@@ -1,42 +1,22 @@
 import { useState } from "react";
-import { Box, Button, MenuItem, Modal, Select, Stack, TextField } from "@mui/material";
 import { HexColorPicker } from "react-colorful";
-import { invoke } from "@tauri-apps/api/core";
+import { SpeakerType } from "./types";
+import useSpeakersStore from "../stores/SpeakersStore";
+import { Button, Input, Modal, Select } from "antd";
 
-const style = {
-    position: 'absolute' as 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-};
-
-export enum SpeakerType {
-    Hero = "Hero",
-    Creature = "Creature"
-}
-  
-export type Speaker = {
-    id: string;
-    name: string;
-}
-
-export function SpeakerCreator(
-    {onSpeakerCreated}:
-    {
-        onSpeakerCreated: (s: Speaker) => void
-    }
-) {
+export function SpeakerCreator() {
 
     const [open, setOpen] = useState<boolean>(false);
     const [type, setType] = useState<SpeakerType>(SpeakerType.Hero);
     const [color, setColor] = useState<string>("");
     const [name, setName] = useState<string>("");
     const [scriptName, setScriptName] = useState<string>("");
+
+    const addSpeaker = useSpeakersStore((state) => state.create);
+
+    function close() {
+        setOpen(false);
+    }
 
     function changeColor(s: string) {
         setColor(s);
@@ -54,52 +34,67 @@ export function SpeakerCreator(
         setScriptName(s);
     }
 
-    function createSpeaker() {
-        invoke("create_speaker", {
-            name: name,
-            scriptName: scriptName,
-            color: color,
-            speakerType: type
-        }).then((v) => onSpeakerCreated(v as Speaker));
-    }
-
     return (
         <>
-            <Button onClick={() => setOpen(true)}
-                style={{width: 150}}
-            >Добавить персонажа</Button>
+            <Button onClick={() => setOpen(true)}>Добавить персонажа</Button>
             <Modal
                 open={open}
+                onCancel={close}
+                onClose={close}
+                onOk={() => {
+                    addSpeaker(name, scriptName, color, type);
+                    setOpen(false);
+                }}
             >
-                <Box sx={style}>
-                    <Stack 
-                        direction="column" 
-                        spacing={2} 
-                        justifyContent="center"
-                    >
-                        <TextField 
-                            onChange={(e) => changeName(e.target.value)}
-                            label="Имя персонажа"/>
-                        <TextField
-                            onChange={(e) => changeScriptName(e.target.value)} 
-                            label="Скриптовое имя персонажа"/>
-                        <Select
-                            onChange={(e) => changeType(e.target.value as SpeakerType)}
-                        >
-                            <MenuItem value={SpeakerType.Creature}>Существо</MenuItem>
-                            <MenuItem value={SpeakerType.Hero}>Герой</MenuItem>
-                        </Select>
-                        <HexColorPicker
-                            onChange={(s) => changeColor(s)}/>
-                        <Button
-                            onClick={() => createSpeaker()}
-                        >Создать</Button>
-                        <Button
-                            onClick={() => setOpen(false)}
-                        >Закрыть</Button>
-                    </Stack>
-                </Box>
+                <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '80%'}}>
+                    <Input onChange={(e) => changeName(e.currentTarget.value)}/>
+                    <Input onChange={(e) => changeScriptName(e.currentTarget.value)}/>
+                    <Select onChange={(e) => changeType(e)}>
+                        <Select.Option key={1} value={SpeakerType.Hero}>Герой</Select.Option>
+                        <Select.Option key={2} value={SpeakerType.Creature}>Существо</Select.Option>
+                    </Select>
+                    <HexColorPicker onChange={(e) => changeColor(e)}/>
+                </div>
             </Modal>
         </>
     )
+    // return (
+    //     <>
+    //         <Button onClick={() => setOpen(true)}
+    //             style={{width: 150}}
+    //         >Добавить персонажа</Button>
+    //         <Modal
+    //             open={open}
+    //         >
+    //             <Box sx={style}>
+    //                 <Stack 
+    //                     direction="column" 
+    //                     spacing={2} 
+    //                     justifyContent="center"
+    //                 >
+    //                     <TextField 
+    //                         onChange={(e) => changeName(e.target.value)}
+    //                         label="Имя персонажа"/>
+    //                     <TextField
+    //                         onChange={(e) => changeScriptName(e.target.value)} 
+    //                         label="Скриптовое имя персонажа"/>
+    //                     <Select
+    //                         onChange={(e) => changeType(e.target.value as SpeakerType)}
+    //                     >
+    //                         <MenuItem value={SpeakerType.Creature}>Существо</MenuItem>
+    //                         <MenuItem value={SpeakerType.Hero}>Герой</MenuItem>
+    //                     </Select>
+    //                     <HexColorPicker
+    //                         onChange={(s) => changeColor(s)}/>
+    //                     <Button
+    //                         onClick={() => createSpeaker()}
+    //                     >Создать</Button>
+    //                     <Button
+    //                         onClick={() => setOpen(false)}
+    //                     >Закрыть</Button>
+    //                 </Stack>
+    //             </Box>
+    //         </Modal>
+    //     </>
+    //)
 }

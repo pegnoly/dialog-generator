@@ -1,35 +1,41 @@
-import { FormControl, InputLabel, Stack, Select, MenuItem, Button } from "@mui/material"
+import useDialogsStore from "../stores/DialogStore"
+import { useShallow } from "zustand/shallow"
+import { useState } from "react";
+import { Button, Modal, Select } from "antd";
 
-export type DialogLoadingModel = {
-    name: string,
-    id: string
-}
+export function DialogLoader() {
+    const [dialogs, selectDialog] = useDialogsStore(useShallow((state) => [state.dialogs, state.select]));
+    
+    const [open, setOpen] = useState<boolean>(false);
+    const [selectedDialog, setSelectedDialog] = useState<string>("");
 
-export function DialogLoader({models} : {models: DialogLoadingModel[]}) {
+    function close() {
+        setOpen(false);
+    }
+
     return(
         <>
-            <Stack spacing={5} direction="column">
-                <FormControl 
-                    variant="standard" 
-                    sx={{ m: 1, minWidth: 300, height: 15 }} 
-                    style={{position: "relative", top: -10}}
-                >
-                    <InputLabel id="demo-simple-select-standard-label">Выбрать существующий диалог</InputLabel>
-                    <Select
-                        labelId="demo-simple-select-standard-label"
-                        id="demo-simple-select-standard"
-                        label="Выбрать существующий диалог"
+            <Button onClick={() => setOpen(true)}>Загрузить существующий диалог</Button>
+            <Modal
+                open={open}
+                onCancel={close}
+                onClose={close}
+                onOk={() => {
+                    selectDialog(selectedDialog);
+                    setOpen(false);
+                }}
+            >
+                <div style={{width: '80%', display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
+                    <Select 
+                        style={{width: '100%'}}
+                        onChange={(e) => setSelectedDialog(e)}
                     >
-                        {
-                            models.map((model, index) => 
-                            <MenuItem 
-                                value={model.id} 
-                                key={index}
-                            >{model.name}</MenuItem>)}
+                        {dialogs.map((d, i) => (
+                            <Select.Option key={i} value={d.id}>{d.name}</Select.Option>
+                        ))}
                     </Select>
-                </FormControl>
-                <Button>Загрузить диалог</Button>
-            </Stack>
+                </div>
+            </Modal>
         </>
     )
 }

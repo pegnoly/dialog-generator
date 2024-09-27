@@ -26,3 +26,4 @@ sqlx = { version = "0.8.1", features = ["sqlite", "runtime-tokio"] }
 tokio = { version = "1.39.3", features = ["full"] }
 uuid = { version = "1.10.0", features = ["v4"] }
 bincode = "1.3.3"
+itertools = "0.13.0"

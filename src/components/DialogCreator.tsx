@@ -1,46 +1,29 @@
-import { Box, Button, IconButton, List, ListItem, MenuItem, Modal, Select, Stack, TextField } from "@mui/material";
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { Speaker } from "./SpeakerCreator";
-import DeleteIcon from '@mui/icons-material/Delete';
+import useDialogsStore from "../stores/DialogStore";
+import useSpeakersStore from "../stores/SpeakersStore";
 
-const style = {
-    position: 'absolute' as 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-};
+import { Button, Input, Modal, Select, Typography } from "antd";
 
-export type Dialog = {
-    name: string;
-    id: string;
-    speakers_ids: string[];
-}
+export function DialogCreator() {
 
-export function DialogCreator(
-    {speakersModels, onDialogCreated}:
-    {
-        speakersModels: Speaker[], 
-        onDialogCreated: (d: Dialog) => void
-    }
-) {
+    const speakersList = useSpeakersStore((state) => state.speakers);
+    const createDialog = useDialogsStore((state) => state.create);
 
-    const [open, setOpen] = useState<boolean>(false);
-    const [name, setName] = useState<string>("");
-    const [scriptName, setScriptName] = useState<string>("");
-    const [currentDirectory, setCurrentDirectory] = useState<string>("");
-    const [selectedSpeaker, setSelectedSpeaker] = useState<string>("");
+    const [open, setOpen] = useState<boolean>(false); // modal's open state
+    const [name, setName] = useState<string>(""); // entered dialog name
+    const [scriptName, setScriptName] = useState<string>(""); // script name
+    const [currentDirectory, setCurrentDirectory] = useState<string>(""); // picked dir
     const [speakers, setSpeakers] = useState<string[]>([]);
 
-    // Called when user creates new dialog
-    function setupNewDialog() {
-        setOpen(true);
+    function close() {
+        setOpen(false);
+    }
+
+    async function submit() {
+        createDialog(name, currentDirectory, scriptName, speakers);
+        setOpen(false);
     }
 
     // Called when user enters smth into dialog name text field
@@ -63,108 +46,46 @@ export function DialogCreator(
         setCurrentDirectory(event.payload);
     });
 
-    function selectSpeaker(s: string) {
-        setSelectedSpeaker(s)
-    }
-
-    function confirmSpeakerSelection() {
-        if ((speakers.find((s) => s == selectedSpeaker)) == undefined) {
-            setSpeakers([
-                ...speakers,
-                selectedSpeaker
-            ]);    
-        } 
-    }
-
-    function removeSpeaker(sp: string) {
-        setSpeakers(speakers.filter((s) => s != sp))
-    }
-
-    // Called when dialog is fully created. Sends created dialog to backend and to parent component.
-    function createDialog() {
-        invoke("create_dialog", {
-            name: name,
-            scriptName: scriptName,
-            directory: currentDirectory,
-            speakers: speakers
-        }).then((v) => onDialogCreated(v as Dialog));
-        setOpen(false);
+    function selectSpeakers(speakers: string[]) {
+        setSpeakers(speakers);
     }
   
     return (
         <>
-            <Button 
-                onClick={() => setupNewDialog()} 
+            <Button
+                onClick={() => setOpen(true)} 
                 style={{width: 150}}
             >Новый диалог</Button>
             <Modal
                 open={open}
+                onClose={close}
+                onCancel={close}
+                onOk={submit}
             >
-            <Box sx={style}>
-                <Stack 
-                    direction="column" 
-                    spacing={5}>
-                    <TextField 
-                        onChange={(e) => changeDialogName(e.target.value)}
-                        label="Название диалога"/>
-                    <TextField 
-                        onChange={(e) => changeDialogScriptName(e.target.value)}
-                        label="Скриптовое имя диалога"/>
+                <div style={{width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                    <div style={{width: '50%', paddingBottom: 10}}>
+                        <Input
+                            onChange={(e) => changeDialogName(e.target.value)} 
+                            name="Название диалога"
+                        />
+                    </div>
+                    <div style={{width: '50%', paddingBottom: 20}}>
+                        <Input
+                            onChange={(e) => changeDialogScriptName(e.target.value)}
+                            name="Скриптовое имя диалога"
+                        />
+                    </div>
                     <Button
                         onClick={() => pickDialogDirectory()}
                     >Указать путь к папке диалога</Button>
-                    <Stack
-                        direction="row" 
-                        spacing={5} 
-                        justifyContent="center"
-                    >
-                        <Select 
-                            sx={{
-                                width: 150
-                            }}
-                            onChange={(e) => selectSpeaker(e.target.value as string)}
-                        >
-                            {speakersModels.map((speaker, index) => (
-                                <MenuItem value={speaker.id} key={index}>{speaker.name}</MenuItem>
-                            ))}
-                        </Select>
-                        <Button
-                            onClick={() => confirmSpeakerSelection()}
-                        >Выбрать персонажа</Button>
-                    </Stack>
-                    <List 
-                            sx={{
-                                width: '75%',
-                                maxWidth: 250,
-                                bgcolor: 'background.paper',
-                                position: 'relative',
-                                left: 75,
-                                overflow: 'auto',
-                                maxHeight: 150,
-                                '& ul': { padding: 0 },
-                            }}
-                        >{speakers.map((sp) => (
-                            <ListItem 
-                                value={sp}
-                                secondaryAction={
-                                    <IconButton onClick={() => removeSpeaker(sp)}>
-                                        <DeleteIcon/>
-                                    </IconButton>
-                                }
-                            >
-                            {speakersModels.find((sm) => sm.id == sp)?.name}</ListItem>
-                        ))}</List>
-                    <Stack 
-                        direction="row" spacing={5} justifyContent="center">
-                        <Button
-                            onClick={() => createDialog()}
-                        >Создать диалог</Button>
-                        <Button
-                            onClick={() => setOpen(false)} 
-                        >Отмена</Button>
-                    </Stack>
-                </Stack>
-            </Box>
+                    <Typography.Text>{currentDirectory}</Typography.Text>
+                    <Select
+                        style={{width: '50%'}}
+                        onChange={(e) => selectSpeakers(e)} 
+                        mode="multiple">{speakersList.map((s, i) => (
+                        <Select.Option key={i} value={s.id}>{s.name}</Select.Option>
+                    ))}</Select>
+                </div>
             </Modal>
         </>
     )

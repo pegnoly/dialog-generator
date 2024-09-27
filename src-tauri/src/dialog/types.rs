@@ -39,7 +39,8 @@ pub struct DialogDBModel {
     pub name: String,
     pub script_name: String,
     pub directory: String,
-    pub speakers_ids: String
+    pub speakers_ids: String,
+    pub labels: String
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -48,14 +49,16 @@ pub struct Dialog {
     pub name: String,
     pub script_name: String,
     pub directory: String,
-    pub speakers_ids: Vec<String> 
+    pub speakers_ids: Vec<String>, 
+    pub labels: Vec<String>
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct DialogFrontendModel {
     pub id: String,
     pub name: String,
-    pub speakers_ids: Vec<String>
+    pub speakers_ids: Vec<String>,
+    pub labels: Vec<String>
 }
 
 impl From<&DialogDBModel> for Dialog {
@@ -65,7 +68,8 @@ impl From<&DialogDBModel> for Dialog {
             name: value.name.clone(),
             script_name: value.script_name.clone(),
             directory: value.directory.clone(),
-            speakers_ids: serde_json::from_str(&value.speakers_ids).unwrap()
+            speakers_ids: serde_json::from_str(&value.speakers_ids).unwrap(),
+            labels: serde_json::from_str(&value.labels).unwrap()
         }
     }
 }
@@ -98,7 +102,8 @@ pub struct DialogStepVariant {
     pub text: String,
     pub speaker_id: String,
     pub label: String,
-    pub step_id: String
+    pub counter: u32,
+    pub dialog_id: String
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -115,7 +120,7 @@ pub struct AppManager {
 impl AppManager {
 
     pub async fn new() -> AppManager {
-        let db_path = std::env::current_dir().unwrap().parent().unwrap().join(Path::new("dialogs_database.db"));
+        let db_path = std::env::current_exe().unwrap().parent().unwrap().join(Path::new("dialogs_database.db"));
         if db_path.exists() == false {
             std::fs::File::create(&db_path).unwrap();      
         }
@@ -136,15 +141,8 @@ impl AppManager {
                     name TEXT, 
                     script_name TEXT,
                     directory TEXT,
-                    speakers_ids TEXT
-                );
-                CREATE TABLE IF NOT EXISTS dialog_steps 
-                (
-                    id TEXT PRIMARY KEY,
-                    inner_counter INTEGER,
-                    variants TEXT,
-                    dialog_id TEXT,
-                    FOREIGN KEY(dialog_id) REFERENCES dialogs(id)
+                    speakers_ids TEXT,
+                    labels TEXT
                 );
                 CREATE TABLE IF NOT EXISTS dialog_variants 
                 (
@@ -152,9 +150,9 @@ impl AppManager {
                     label TEXT,
                     speaker_id TEXT,
                     text TEXT,
-                    step_id TEXT,
-                    UNIQUE(label, step_id),
-                    FOREIGN KEY(step_id) REFERENCES dialog_steps(id)
+                    counter INTEGER,
+                    dialog_id TEXT,
+                    FOREIGN KEY(dialog_id) REFERENCES dialogs(id)
                 );
                 CREATE TABLE IF NOT EXISTS speakers 
                 (
