@@ -7,8 +7,7 @@ use tauri_plugin_dialog::DialogExt;
 use super::{source::create_variant, types::{
     AppManager, 
     Dialog, 
-    DialogDBModel, 
-    DialogFrontendModel, 
+    DialogDBModel,  
     DialogStepVariant, 
     DialogStepVariantFrontendModel,
     Speaker, 
@@ -74,7 +73,7 @@ pub async fn create_dialog(
     script_name: String,
     directory: String,
     speakers: Vec<String>
-) -> Result<DialogFrontendModel, String> {  
+) -> Result<Dialog, String> {  
     let sql = r#"
         INSERT INTO dialogs 
         (id, name, script_name, directory, speakers_ids, labels)
@@ -97,12 +96,7 @@ pub async fn create_dialog(
         .execute(&app_manager.db_pool).await;
     match res {
         Ok(_) => {
-            Ok(DialogFrontendModel {
-                id: dialog.id,
-                name: dialog.name,
-                speakers_ids: dialog.speakers_ids,
-                labels: dialog.labels
-            })
+            Ok(dialog)
         },
         Err(query_failure) => {
             println!("Failed to create new dialog: {:?}", &query_failure);

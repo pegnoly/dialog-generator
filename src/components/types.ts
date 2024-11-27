@@ -5,7 +5,8 @@ export type DialogStep = {
 
 export type DialogStepVariant = {
     text: string,
-    speaker: string
+    speaker: string,
+    saved: boolean
 }
 
 export enum SpeakerType {

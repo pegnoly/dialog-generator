@@ -6,7 +6,8 @@ type DialogStepStore = {
     inner_counter: number,
     label: string,
     text: string,
-    speaker: string | undefined
+    speaker: string | undefined,
+    saved: boolean
 }
 
 type DialogStepActions = {
@@ -24,6 +25,7 @@ const useVariantsStore = create<DialogStepStore & DialogStepActions>((set, get) 
     label: "main",
     text: "",
     speaker: undefined,
+    saved: true,
     async load(dialog_id) {
         const counter = get().inner_counter;
         const label = get().label;
@@ -46,13 +48,14 @@ const useVariantsStore = create<DialogStepStore & DialogStepActions>((set, get) 
         set(() => ({label: newLabel}));
     },
     update_text(newText) {
-        set(() => ({text: newText}))
+        set(() => ({text: newText, saved: false}))
     },
     update_speaker(newSpeaker) {
-        set(() => ({speaker: newSpeaker}))
+        set(() => ({speaker: newSpeaker, saved: false}))
     },
     async save(dialog_id) {
         await invoke("save_variant", {dialogId: dialog_id, counter: get().inner_counter, label: get().label, speaker: get().speaker, text: get().text});
+        set(() => ({saved: true}))
     },
 }))
 

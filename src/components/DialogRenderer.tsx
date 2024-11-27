@@ -10,8 +10,8 @@ import TextArea from "antd/es/input/TextArea";
 export function VariantDispatcher() {
     const speakers = useSpeakersStore((state) => state.speakers);
     const [currentDialog, addLabel] = useDialogsStore(useShallow((state) => [state.current_dialog, state.addLabel]));
-    const [reset, counter, label, updateCounter, updateLabel, load, save] = useVariantsStore(useShallow((state) => ([
-        state.reset, state.inner_counter, state.label, state.change_counter, state.change_label, state.load, state.save
+    const [reset, counter, label, saved, updateCounter, updateLabel, load, save] = useVariantsStore(useShallow((state) => ([
+        state.reset, state.inner_counter, state.label, state.saved, state.change_counter, state.change_label, state.load, state.save
     ])));
 
     const [newLabel, setNewLabel] = useState<string>("");
@@ -29,10 +29,15 @@ export function VariantDispatcher() {
         }
     }, [label, counter])
 
+    function saveVariant() {
+        save(currentDialog.id!);
+    }
+
     return(
         <div style={{width: '100%', display: 'flex', flexDirection: 'row'}}>
             <div style={{width: '30%', display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
-                <Typography.Text>{currentDialog.name}</Typography.Text>
+                <Typography.Text>{`Имя диалога: ${currentDialog.name}`}</Typography.Text>
+                <Typography.Text>{`Скриптовое имя: ${currentDialog.script_name}`}</Typography.Text>
                 <div style={{paddingTop: 20, paddingBottom: 20}}>
                     <Typography.Text style={{textAlign: 'center', fontSize: 15}}>Новый вариант диалога</Typography.Text>
                     <Input onChange={(e) => setNewLabel(e.currentTarget.value)}/>
@@ -55,17 +60,19 @@ export function VariantDispatcher() {
                     <Button
                         style={{width: '100%'}}
                         onClick={() => updateCounter(counter + 1)}
+                        disabled={!saved}
                     >Следующий вариант</Button>
                     <Button
                         style={{width: '100%'}}
-                        disabled={counter == 0}
+                        disabled={counter == 0 || !saved}
                         onClick={() => updateCounter(counter - 1)}
                     >Предыдущий вариант</Button>
                 </div>
                 <Button 
-                    onClick={() => save(currentDialog.id!)}
+                    onClick={() => saveVariant()}
+                    style={{backgroundColor: saved == false ? "red" : "green"}}
                 >Сохранить вариант</Button>
-                <Typography.Text>{counter}</Typography.Text>
+                <Typography.Text>{`Текущий шаг: ${counter}`}</Typography.Text>
             </div>
             <div style={{width: '70%', display: 'flex', flexDirection: 'column'}}>
                 <VariantRenderer avaliable_speakers={speakers.filter((s) => currentDialog.speakers_ids.includes(s.id))}/>

@@ -62,23 +62,25 @@ export function DialogCreator() {
                 onCancel={close}
                 onOk={submit}
             >
-                <div style={{width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                    <div style={{width: '50%', paddingBottom: 10}}>
+                <div style={{width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10}}>
+                    <Typography.Text>Название диалога</Typography.Text>
+                    <div style={{width: '50%'}}>
                         <Input
                             onChange={(e) => changeDialogName(e.target.value)} 
                             name="Название диалога"
                         />
                     </div>
-                    <div style={{width: '50%', paddingBottom: 20}}>
+                    <Typography.Text>Скриптовое имя диалога</Typography.Text>
+                    <div style={{width: '50%'}}>
                         <Input
                             onChange={(e) => changeDialogScriptName(e.target.value)}
-                            name="Скриптовое имя диалога"
                         />
                     </div>
                     <Button
                         onClick={() => pickDialogDirectory()}
                     >Указать путь к папке диалога</Button>
                     <Typography.Text>{currentDirectory}</Typography.Text>
+                    <Typography.Text>Персонажи диалога</Typography.Text>
                     <Select
                         style={{width: '50%'}}
                         onChange={(e) => selectSpeakers(e)} 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { HexColorPicker } from "react-colorful";
 import { SpeakerType } from "./types";
 import useSpeakersStore from "../stores/SpeakersStore";
-import { Button, Input, Modal, Select } from "antd";
+import { Button, Input, Modal, Select, Typography } from "antd";
 
 export function SpeakerCreator() {
 
@@ -47,12 +47,16 @@ export function SpeakerCreator() {
                 }}
             >
                 <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '80%'}}>
+                    <Typography.Text>Имя персонажа</Typography.Text>
                     <Input onChange={(e) => changeName(e.currentTarget.value)}/>
+                    <Typography.Text>Скриптовое имя персонажа</Typography.Text>
                     <Input onChange={(e) => changeScriptName(e.currentTarget.value)}/>
+                    <Typography.Text>Тип персонажа</Typography.Text>
                     <Select onChange={(e) => changeType(e)}>
                         <Select.Option key={1} value={SpeakerType.Hero}>Герой</Select.Option>
                         <Select.Option key={2} value={SpeakerType.Creature}>Существо</Select.Option>
                     </Select>
+                    <Typography.Text>Цвет персонажа</Typography.Text>
                     <HexColorPicker onChange={(e) => changeColor(e)}/>
                 </div>
             </Modal>
